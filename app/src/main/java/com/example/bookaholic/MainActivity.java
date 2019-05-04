@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -22,6 +23,10 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -35,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     public RelativeLayout parentView;
     float alphaValue = 0;
     private Context context;
+    FirebaseAuth mAuth;
 
     ArrayList<UserDataModel> userDataModelArrayList;
 
@@ -43,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mAuth = FirebaseAuth.getInstance();
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setTitle("Bookaholic");
         setSupportActionBar(toolbar);
@@ -53,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         windowwidth = getWindowManager().getDefaultDisplay().getWidth();
 
-        screenCenter = windowwidth / 2;
+        screenCenter = windowwidth / 6;
 
         userDataModelArrayList = new ArrayList<>();
 
@@ -94,8 +101,8 @@ public class MainActivity extends AppCompatActivity {
             tvLike.setText("LIKE");
             tvLike.setGravity(Gravity.CENTER);
             tvLike.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-            tvLike.setTextSize(25);
-            tvLike.setTextColor(ContextCompat.getColor(context, R.color.colorAccent));
+            tvLike.setTextSize(50);
+            tvLike.setTextColor(ContextCompat.getColor(context, R.color.colorProgressBar));
             tvLike.setX(20);
             tvLike.setY(100);
             tvLike.setRotation(-50);
@@ -111,9 +118,9 @@ public class MainActivity extends AppCompatActivity {
             tvUnLike.setText("UNLIKE");
             tvUnLike.setGravity(Gravity.CENTER);
             tvUnLike.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-            tvUnLike.setTextSize(25);
+            tvUnLike.setTextSize(50);
             tvUnLike.setTextColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
-            tvUnLike.setX(500);
+            tvUnLike.setX(550);
             tvUnLike.setY(150);
             tvUnLike.setRotation(50);
             tvUnLike.setAlpha(alphaValue);
@@ -128,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
             tvTotLikes.setText(userDataModelArrayList.get(i).getTotalLikes());
 
             // Touch listener on the image layout to swipe image right or left.
-            final int finalI = i;
             final int finalI1 = i;
             relativeLayoutContainer.setOnTouchListener(new OnTouchListener() {
 
@@ -308,4 +314,20 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
         return true;    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if(currentUser == null) {
+            Toast.makeText(MainActivity.this,"Login or Register",Toast.LENGTH_SHORT).show();
+            change();
+        }
+    }
+    private void change() {
+        Intent intent = new Intent(this,login.class);
+        startActivity(intent);
+        finish();
+    }
 }
