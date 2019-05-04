@@ -66,20 +66,27 @@ public class register extends AppCompatActivity {
                 if(task.isSuccessful()) {
                     Map<String, Object> user = new HashMap<>();
                     user.put("name", name);
-                    firebaseFirestore.collection("Users").document(task.getResult().getUser().getUid().toString()).set(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    Toast.makeText(register.this, " Wait" , Toast.LENGTH_SHORT).show();
+                    firebaseFirestore.collection("Users").document(task.getResult().getUser().getUid().toString()).set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
-                        public void onSuccess(Void aVoid) {
-                            Intent intent = new Intent(register.this, MainActivity.class);
-                            Toast.makeText(register.this,"success registration",Toast.LENGTH_LONG).show();
-                            startActivity(intent);
-                            finish();
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful()) {
+                                Intent intent = new Intent(register.this, MainActivity.class);
+                                Toast.makeText(register.this,"success registration",Toast.LENGTH_LONG).show();
+                                startActivity(intent);
+                                finish();
+                            }
+                            else {
+                                String error = task.getException().getMessage().toString();
+                                Toast.makeText(register.this, " Database Error : "+ error , Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
                 }
 
                 else {
                     String error = task.getException().getMessage().toString();
-                    Toast.makeText(register.this, " ERROR registering", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(register.this, " ERROR registering : "+ error , Toast.LENGTH_SHORT).show();
                 }
             }});
     }

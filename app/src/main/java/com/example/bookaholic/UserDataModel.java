@@ -1,24 +1,40 @@
 package com.example.bookaholic;
 
 public class UserDataModel {
-    String name, totalLikes;
-    int photo;
-    public String getName() {
-        return name;
+    String bname, aname,image,uid;
+
+
+    public String getBname() {
+        return bname;
     }
-    public void setName(String name) {
-        this.name = name;
+
+    public void setBname(String bname) {
+        this.bname = bname;
     }
-    public String getTotalLikes() {
-        return totalLikes;
+
+    public String getAname() {
+        return aname;
     }
-    public void setTotalLikes(String totalLikes) {
-        this.totalLikes = totalLikes;
+
+    public void setAname(String aname) {
+        this.aname = aname;
     }
-    public int getPhoto() {
-        return photo;
+
+    public String getImage() {
+        return image;
     }
-    public void setPhoto(int photo) {
-        this.photo = photo;
+
+    public void setImage(String image) {
+        this.image = image;
     }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+
 }

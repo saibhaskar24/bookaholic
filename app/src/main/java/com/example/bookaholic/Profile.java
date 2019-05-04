@@ -74,7 +74,7 @@ public class Profile extends AppCompatActivity {
     }
 
     public void add_book(View view) {
-        Intent intent = new Intent(this, gallery.class);
+        Intent intent = new Intent(this, addbook.class);
         startActivity(intent);
     }
 

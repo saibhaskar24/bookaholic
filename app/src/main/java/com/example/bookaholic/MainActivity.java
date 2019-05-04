@@ -24,8 +24,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     float alphaValue = 0;
     private Context context;
     FirebaseAuth mAuth;
+    FirebaseFirestore db;
 
     ArrayList<UserDataModel> userDataModelArrayList;
 
@@ -51,253 +58,218 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mAuth = FirebaseAuth.getInstance();
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setTitle("Bookaholic");
-        setSupportActionBar(toolbar);
-
-        context = MainActivity.this;
-
-        parentView = (RelativeLayout) findViewById(R.id.main_layoutview);
-
-        windowwidth = getWindowManager().getDefaultDisplay().getWidth();
-
-        screenCenter = windowwidth / 6;
-
+        db = FirebaseFirestore.getInstance();
         userDataModelArrayList = new ArrayList<>();
-
-        getArrayData();
-
-
-        for (int i = 0; i < userDataModelArrayList.size(); i++) {
-
-            LayoutInflater inflate =
-                    (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-            final View containerView = inflate.inflate(R.layout.custom_layout, null);
-
-            ImageView userIMG = (ImageView) containerView.findViewById(R.id.userIMG);
-            RelativeLayout relativeLayoutContainer = (RelativeLayout) containerView.findViewById(R.id.relative_container);
-
-
-            LayoutParams layoutParams = new LayoutParams(
-                    LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-
-            containerView.setLayoutParams(layoutParams);
-
-            containerView.setTag(i);
-            userIMG.setBackgroundResource(userDataModelArrayList.get(i).getPhoto());
+        db.collection("Books")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                UserDataModel model = new UserDataModel();
+                                model.setAname(document.get("aname").toString());
+                                model.setBname(document.get("bname").toString());
+                                model.setImage(document.get("image").toString());
+                                model.setUid(document.get("uid").toString());
+                                userDataModelArrayList.add(model);
+                                Log.d("FData", document.getId() + " => " + userDataModelArrayList);
+                            }
+                            Collections.reverse(userDataModelArrayList);
+                            Log.d("FData" ,userDataModelArrayList.size()+" =>" + userDataModelArrayList);
 
 
-             containerView.setPadding(0, i, 0, 0);
 
-            LayoutParams layoutTvParams = new LayoutParams(
-                    LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                            context = MainActivity.this;
+
+                            parentView = (RelativeLayout) findViewById(R.id.main_layoutview);
+
+                            windowwidth = getWindowManager().getDefaultDisplay().getWidth();
+
+                            screenCenter = windowwidth / 6;
+                            Log.d("FData" ,userDataModelArrayList.size()+" =>" + userDataModelArrayList);
+
+                            for (int i = 0; i < userDataModelArrayList.size(); i++) {
+
+                                LayoutInflater inflate =
+                                        (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+                                final View containerView = inflate.inflate(R.layout.custom_layout, null);
+
+                                ImageView userIMG = (ImageView) containerView.findViewById(R.id.userIMG);
+                                RelativeLayout relativeLayoutContainer = (RelativeLayout) containerView.findViewById(R.id.relative_container);
 
 
-            // ADD dynamically like TextView on image.
-            final TextView tvLike = new TextView(context);
-            tvLike.setLayoutParams(layoutTvParams);
-            tvLike.setPadding(10, 10, 10, 10);
-            tvLike.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnlikeback));
-            tvLike.setText("LIKE");
-            tvLike.setGravity(Gravity.CENTER);
-            tvLike.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-            tvLike.setTextSize(50);
-            tvLike.setTextColor(ContextCompat.getColor(context, R.color.colorProgressBar));
-            tvLike.setX(20);
-            tvLike.setY(100);
-            tvLike.setRotation(-50);
-            tvLike.setAlpha(alphaValue);
-            relativeLayoutContainer.addView(tvLike);
+                                LayoutParams layoutParams = new LayoutParams(
+                                        LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+
+                                containerView.setLayoutParams(layoutParams);
+
+                                containerView.setTag(i);
+                                Picasso.get().load(userDataModelArrayList.get(i).getImage()).into(userIMG);
+                                //userIMG.setBackgroundResource(userDataModelArrayList.get(i).getImage());
+
+
+                                containerView.setPadding(0, i, 0, 0);
+
+                                LayoutParams layoutTvParams = new LayoutParams(
+                                        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+
+
+                                // ADD dynamically like TextView on image.
+                                final TextView tvLike = new TextView(context);
+                                tvLike.setLayoutParams(layoutTvParams);
+                                tvLike.setPadding(10, 10, 10, 10);
+                                tvLike.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnlikeback));
+                                tvLike.setText("LIKE");
+                                tvLike.setGravity(Gravity.CENTER);
+                                tvLike.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                                tvLike.setTextSize(50);
+                                tvLike.setTextColor(ContextCompat.getColor(context, R.color.colorProgressBar));
+                                tvLike.setX(20);
+                                tvLike.setY(100);
+                                tvLike.setRotation(-50);
+                                tvLike.setAlpha(alphaValue);
+                                relativeLayoutContainer.addView(tvLike);
 
 
 //            ADD dynamically dislike TextView on image.
-            final TextView tvUnLike = new TextView(context);
-            tvUnLike.setLayoutParams(layoutTvParams);
-            tvUnLike.setPadding(10, 10, 10, 10);
-            tvUnLike.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnunlikeback));
-            tvUnLike.setText("UNLIKE");
-            tvUnLike.setGravity(Gravity.CENTER);
-            tvUnLike.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
-            tvUnLike.setTextSize(50);
-            tvUnLike.setTextColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
-            tvUnLike.setX(550);
-            tvUnLike.setY(150);
-            tvUnLike.setRotation(50);
-            tvUnLike.setAlpha(alphaValue);
-            relativeLayoutContainer.addView(tvUnLike);
+                                final TextView tvUnLike = new TextView(context);
+                                tvUnLike.setLayoutParams(layoutTvParams);
+                                tvUnLike.setPadding(10, 10, 10, 10);
+                                tvUnLike.setBackgroundDrawable(getResources().getDrawable(R.drawable.btnunlikeback));
+                                tvUnLike.setText("UNLIKE");
+                                tvUnLike.setGravity(Gravity.CENTER);
+                                tvUnLike.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                                tvUnLike.setTextSize(50);
+                                tvUnLike.setTextColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
+                                tvUnLike.setX(550);
+                                tvUnLike.setY(150);
+                                tvUnLike.setRotation(50);
+                                tvUnLike.setAlpha(alphaValue);
+                                relativeLayoutContainer.addView(tvUnLike);
 
 
-            TextView tvName = (TextView) containerView.findViewById(R.id.tvName);
-            TextView tvTotLikes = (TextView) containerView.findViewById(R.id.tvTotalLikes);
+                                TextView tvName = (TextView) containerView.findViewById(R.id.tvName);
+                                TextView tvTotLikes = (TextView) containerView.findViewById(R.id.tvTotalLikes);
 
 
-            tvName.setText(userDataModelArrayList.get(i).getName());
-            tvTotLikes.setText(userDataModelArrayList.get(i).getTotalLikes());
+                                tvName.setText(userDataModelArrayList.get(i).getAname());
+                                tvTotLikes.setText(userDataModelArrayList.get(i).getBname());
 
-            // Touch listener on the image layout to swipe image right or left.
-            final int finalI1 = i;
-            relativeLayoutContainer.setOnTouchListener(new OnTouchListener() {
+                                // Touch listener on the image layout to swipe image right or left.
+                                final int finalI1 = i;
+                                relativeLayoutContainer.setOnTouchListener(new OnTouchListener() {
 
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
+                                    @Override
+                                    public boolean onTouch(View v, MotionEvent event) {
 
-                    x_cord = (int) event.getRawX();
-                    y_cord = (int) event.getRawY();
+                                        x_cord = (int) event.getRawX();
+                                        y_cord = (int) event.getRawY();
 
-                    containerView.setX(0);
-                    containerView.setY(0);
+                                        containerView.setX(0);
+                                        containerView.setY(0);
 
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
+                                        switch (event.getAction()) {
+                                            case MotionEvent.ACTION_DOWN:
 
-                            x = (int) event.getX();
-                            y = (int) event.getY();
-
-
-                            Log.v("On touch", x + " " + y);
-                            break;
-                        case MotionEvent.ACTION_MOVE:
-
-                            x_cord = (int) event.getRawX();
-                            // smoother animation.
-                            y_cord = (int) event.getRawY();
-
-                            containerView.setX(x_cord - x);
-                            containerView.setY(y_cord - y);
+                                                x = (int) event.getX();
+                                                y = (int) event.getY();
 
 
-                            if (x_cord >= screenCenter) {
-                                containerView.setRotation((float) ((x_cord - screenCenter) * (Math.PI / 32)));
-                                if (x_cord > (screenCenter + (screenCenter / 2))) {
-                                    tvLike.setAlpha(1);
-                                    if (x_cord > (windowwidth - (screenCenter / 4))) {
-                                        Likes = 2;
-                                    } else {
-                                        Likes = 0;
+                                                Log.v("On touch", x + " " + y);
+                                                break;
+                                            case MotionEvent.ACTION_MOVE:
+
+                                                x_cord = (int) event.getRawX();
+                                                // smoother animation.
+                                                y_cord = (int) event.getRawY();
+
+                                                containerView.setX(x_cord - x);
+                                                containerView.setY(y_cord - y);
+
+
+                                                if (x_cord >= screenCenter) {
+                                                    containerView.setRotation((float) ((x_cord - screenCenter) * (Math.PI / 32)));
+                                                    if (x_cord > (screenCenter + (screenCenter / 2))) {
+                                                        tvLike.setAlpha(1);
+                                                        if (x_cord > (windowwidth - (screenCenter / 4))) {
+                                                            Likes = 2;
+                                                        } else {
+                                                            Likes = 0;
+                                                        }
+                                                    } else {
+                                                        Likes = 0;
+                                                        tvLike.setAlpha(0);
+                                                    }
+                                                    tvUnLike.setAlpha(0);
+                                                } else {
+                                                    // rotate image while moving
+                                                    containerView.setRotation((float) ((x_cord - screenCenter) * (Math.PI / 32)));
+                                                    if (x_cord < (screenCenter / 2)) {
+                                                        tvUnLike.setAlpha(1);
+                                                        if (x_cord < screenCenter / 4) {
+                                                            Likes = 1;
+                                                        } else {
+                                                            Likes = 0;
+                                                        }
+                                                    } else {
+                                                        Likes = 0;
+                                                        tvUnLike.setAlpha(0);
+                                                    }
+                                                    tvLike.setAlpha(0);
+                                                }
+
+                                                break;
+                                            case MotionEvent.ACTION_UP:
+
+                                                x_cord = (int) event.getRawX();
+                                                y_cord = (int) event.getRawY();
+
+                                                Log.e("X Point", "" + x_cord + " , Y " + y_cord);
+                                                tvUnLike.setAlpha(0);
+                                                tvLike.setAlpha(0);
+
+                                                if (Likes == 0) {
+                                                    Toast.makeText(context, "NOTHING"+userDataModelArrayList.get(finalI1).getUid(), Toast.LENGTH_SHORT).show();
+                                                    Log.e("Event_Status :-> ", "Nothing"+ userDataModelArrayList.get(finalI1).getUid());
+                                                    containerView.setX(0);
+                                                    containerView.setY(0);
+                                                    containerView.setRotation(0);
+                                                } else if (Likes == 1) {
+                                                    Toast.makeText(context, "UNLIKE"+userDataModelArrayList.get(finalI1).getUid(), Toast.LENGTH_SHORT).show();
+                                                    Log.e("Event_Status :-> ", "UNLIKE");
+                                                    parentView.removeView(containerView);
+                                                } else if (Likes == 2) {
+                                                    Toast.makeText(context, "LIKED"+userDataModelArrayList.get(finalI1).getUid(), Toast.LENGTH_SHORT).show();
+                                                    Log.e("Event_Status :-> ", "Liked");
+                                                    parentView.removeView(containerView);
+                                                }
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        return true;
                                     }
-                                } else {
-                                    Likes = 0;
-                                    tvLike.setAlpha(0);
-                                }
-                                tvUnLike.setAlpha(0);
-                            } else {
-                                // rotate image while moving
-                                containerView.setRotation((float) ((x_cord - screenCenter) * (Math.PI / 32)));
-                                if (x_cord < (screenCenter / 2)) {
-                                    tvUnLike.setAlpha(1);
-                                    if (x_cord < screenCenter / 4) {
-                                        Likes = 1;
-                                    } else {
-                                        Likes = 0;
-                                    }
-                                } else {
-                                    Likes = 0;
-                                    tvUnLike.setAlpha(0);
-                                }
-                                tvLike.setAlpha(0);
+                                });
+
+
+                                parentView.addView(containerView);
+
                             }
 
-                            break;
-                        case MotionEvent.ACTION_UP:
-
-                            x_cord = (int) event.getRawX();
-                            y_cord = (int) event.getRawY();
-
-                            Log.e("X Point", "" + x_cord + " , Y " + y_cord);
-                            tvUnLike.setAlpha(0);
-                            tvLike.setAlpha(0);
-
-                            if (Likes == 0) {
-                                Toast.makeText(context, "NOTHING"+userDataModelArrayList.get(finalI1).getName(), Toast.LENGTH_SHORT).show();
-                                Log.e("Event_Status :-> ", "Nothing"+ userDataModelArrayList.get(finalI1).getName());
-                                containerView.setX(0);
-                                containerView.setY(0);
-                                containerView.setRotation(0);
-                            } else if (Likes == 1) {
-                                Toast.makeText(context, "UNLIKE"+userDataModelArrayList.get(finalI1).getName(), Toast.LENGTH_SHORT).show();
-                                Log.e("Event_Status :-> ", "UNLIKE");
-                                parentView.removeView(containerView);
-                            } else if (Likes == 2) {
-                                Toast.makeText(context, "LIKED"+userDataModelArrayList.get(finalI1).getName(), Toast.LENGTH_SHORT).show();
-                                Log.e("Event_Status :-> ", "Liked");
-                                parentView.removeView(containerView);
-                            }
-                            break;
-                        default:
-                            break;
+                        } else {
+                            Log.w("FError", "Error getting documents.", task.getException());
+                        }
                     }
-                    return true;
-                }
-            });
+                });
+        //Log.d("FData" ,userDataModelArrayList.size()+" =>" + userDataModelArrayList);
+        //Collections.reverse(userDataModelArrayList);
 
-
-            parentView.addView(containerView);
-
-        }
-
-
+        setTitle("Bookaholic");
+        setSupportActionBar(toolbar);
     }
 
-    private void getArrayData() {
-
-        UserDataModel model = new UserDataModel();
-        model.setName("Lost Symbol ");
-        model.setTotalLikes("3 M");
-        model.setPhoto(R.drawable.danbrown);
-        userDataModelArrayList.add(model);
-
-
-        UserDataModel model2 = new UserDataModel();
-        model2.setName("Alchamist ");
-        model2.setTotalLikes("2 M");
-        model2.setPhoto(R.drawable.alchemist);
-        userDataModelArrayList.add(model2);
-
-        UserDataModel model3 = new UserDataModel();
-        model3.setName("Origin ");
-        model3.setTotalLikes("3 M");
-        model3.setPhoto(R.drawable.origin);
-        userDataModelArrayList.add(model3);
-
-
-        UserDataModel model4 = new UserDataModel();
-        model4.setName("Digital Fotress");
-        model4.setTotalLikes("4 M");
-        model4.setPhoto(R.drawable.digitalfotris);
-        userDataModelArrayList.add(model4);
-
-
-        UserDataModel model5 = new UserDataModel();
-        model5.setName("Inferno ");
-        model5.setTotalLikes("5 M");
-        model5.setPhoto(R.drawable.inferno);
-        userDataModelArrayList.add(model5);
-
-        UserDataModel model6 = new UserDataModel();
-        model6.setName("Nimblechapps 6 ");
-        model6.setTotalLikes("6 M");
-        model6.setPhoto(R.drawable.digitalfotris);
-        userDataModelArrayList.add(model6);
-
-
-        UserDataModel model7 = new UserDataModel();
-        model7.setName("Biograpy ");
-        model7.setTotalLikes("7 M");
-        model7.setPhoto(R.drawable.bio);
-        userDataModelArrayList.add(model7);
-
-
-        UserDataModel model8 = new UserDataModel();
-        model8.setName("Davency code ");
-        model8.setTotalLikes("8 M");
-        model8.setPhoto(R.drawable.davencycode);
-        userDataModelArrayList.add(model8);
-
-
-        Collections.reverse(userDataModelArrayList);
-
-
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.navigation, menu);
