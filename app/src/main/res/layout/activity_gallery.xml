@@ -5,6 +5,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar" />
+
+
     <GridView
         android:id="@+id/gridview_android_example"
         android:layout_width="match_parent"

@@ -279,7 +279,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.chat) {
-
+            Intent intent = new Intent(this,chatlist.class);
+            startActivity(intent);
         }
         else if(item.getItemId() == R.id.profile) {
             Intent intent = new Intent(this,Profile.class);
