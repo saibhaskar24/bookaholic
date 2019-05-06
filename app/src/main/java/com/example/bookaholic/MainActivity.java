@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +32,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -86,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
                             windowwidth = getWindowManager().getDefaultDisplay().getWidth();
 
-                            screenCenter = windowwidth / 6;
+                            screenCenter = windowwidth / 2;
                             Log.d("FData" ,userDataModelArrayList.size()+" =>" + userDataModelArrayList);
 
                             for (int i = 0; i < userDataModelArrayList.size(); i++) {
@@ -96,8 +98,9 @@ public class MainActivity extends AppCompatActivity {
 
                                 final View containerView = inflate.inflate(R.layout.custom_layout, null);
 
-                                ImageView userIMG = (ImageView) containerView.findViewById(R.id.userIMG);
+                                final ImageView userIMG = (ImageView) containerView.findViewById(R.id.userIMG);
                                 RelativeLayout relativeLayoutContainer = (RelativeLayout) containerView.findViewById(R.id.relative_container);
+                                final ProgressBar progressBar = (ProgressBar) containerView.findViewById(R.id.progress);
 
 
                                 LayoutParams layoutParams = new LayoutParams(
@@ -106,7 +109,21 @@ public class MainActivity extends AppCompatActivity {
                                 containerView.setLayoutParams(layoutParams);
 
                                 containerView.setTag(i);
-                                Picasso.get().load(userDataModelArrayList.get(i).getImage()).into(userIMG);
+                                Picasso.get().load(userDataModelArrayList.get(i).getImage()).into(userIMG, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+                                        userIMG.setVisibility(View.VISIBLE);
+                                        progressBar.setVisibility(View.INVISIBLE);
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        progressBar.setVisibility(View.VISIBLE);
+                                        userIMG.setVisibility(View.INVISIBLE);
+                                        String er = e.getMessage().toString();
+                                        Toast.makeText(MainActivity.this, "Error : "+er,Toast.LENGTH_LONG).show();
+                                    }
+                                });
                                 //userIMG.setBackgroundResource(userDataModelArrayList.get(i).getImage());
 
 
@@ -189,11 +206,13 @@ public class MainActivity extends AppCompatActivity {
                                                 containerView.setY(y_cord - y);
 
 
+                                                Log.e("xcord = ", x_cord + "");
+                                                Log.e("screencenter ", screenCenter + "");
                                                 if (x_cord >= screenCenter) {
                                                     containerView.setRotation((float) ((x_cord - screenCenter) * (Math.PI / 32)));
                                                     if (x_cord > (screenCenter + (screenCenter / 2))) {
                                                         tvLike.setAlpha(1);
-                                                        if (x_cord > (windowwidth - (screenCenter / 4))) {
+                                                        if (x_cord > (windowwidth - (screenCenter / 2))) {
                                                             Likes = 2;
                                                         } else {
                                                             Likes = 0;
@@ -208,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
                                                     containerView.setRotation((float) ((x_cord - screenCenter) * (Math.PI / 32)));
                                                     if (x_cord < (screenCenter / 2)) {
                                                         tvUnLike.setAlpha(1);
-                                                        if (x_cord < screenCenter / 4) {
+                                                        if (x_cord < screenCenter / 6) {
                                                             Likes = 1;
                                                         } else {
                                                             Likes = 0;
@@ -219,6 +238,8 @@ public class MainActivity extends AppCompatActivity {
                                                     }
                                                     tvLike.setAlpha(0);
                                                 }
+
+
 
                                                 break;
                                             case MotionEvent.ACTION_UP:
